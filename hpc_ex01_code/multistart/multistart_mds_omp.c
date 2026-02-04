@@ -4,9 +4,12 @@
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <omp.h>
 
 #define MAXVARS		(250)	/* max # of variables	     */
 #define EPSMIN		(1E-6)	/* ending value of stepsize  */
+#define NUM_THREADS (omp_get_max_threads()) 
+
 
 /* prototype of local optimization routine, code available in torczon.c */
 extern void mds(double *startpoint, double *endpoint, int n, double *val, double eps, int maxfevals, int maxiter,
@@ -22,6 +25,7 @@ double f(double *x, int n)
     double fv;
     int i;
 
+    #pragma omp atomic
     funevals++;
     fv = 0.0;
     for (i=0; i<n-1; i++)   /* rosenbrock */
@@ -78,6 +82,8 @@ int main(int argc, char *argv[])
 	for (i = 0; i < MAXVARS; i++) upper[i] = +2.0;	/* upper bound: +2.0 */
 
 	t0 = get_wtime();
+	int term = -1;
+	#pragma omp parallel for private(trial, i, startpt, endpt, fx, nt, nf, term) num_threads(NUM_THREADS)
 	for (trial = 0; trial < ntrials; trial++) {
 		srand48(trial);
 
@@ -86,7 +92,6 @@ int main(int argc, char *argv[])
 			startpt[i] = lower[i] + (upper[i]-lower[i])*drand48();
 		}
 
-		int term = -1;
     mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
         &nt, &nf, lower, upper, &term);
 
@@ -99,13 +104,16 @@ int main(int argc, char *argv[])
 #endif
 
 		/* keep the best solution */
-		if (fx < best_fx) {
-			best_trial = trial;
-			best_nt = nt;
-			best_nf = nf;
-			best_fx = fx;
-			for (i = 0; i < nvars; i++)
-				best_pt[i] = endpt[i];
+		#pragma omp critical
+		{
+			if (fx < best_fx) {
+				best_trial = trial;
+				best_nt = nt;
+				best_nf = nf;
+				best_fx = fx;
+				for (i = 0; i < nvars; i++)
+					best_pt[i] = endpt[i];
+			}
 		}
 	}
 	t1 = get_wtime();
