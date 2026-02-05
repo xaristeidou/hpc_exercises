@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <omp.h>
 
 #define MAXVARS		(250)	/* max # of variables	     */
 #define EPSMIN		(1E-6)	/* ending value of stepsize  */
@@ -22,6 +23,7 @@ double f(double *x, int n)
     double fv;
     int i;
 
+	#pragma omp atomic
     funevals++;
     fv = 0.0;
     for (i=0; i<n-1; i++)   /* rosenbrock */
@@ -78,34 +80,45 @@ int main(int argc, char *argv[])
 	for (i = 0; i < MAXVARS; i++) upper[i] = +2.0;	/* upper bound: +2.0 */
 
 	t0 = get_wtime();
-	for (trial = 0; trial < ntrials; trial++) {
-		srand48(trial);
-
-		/* starting guess for rosenbrock test function, search space in [-2, 2) */
-		for (i = 0; i < nvars; i++) {
-			startpt[i] = lower[i] + (upper[i]-lower[i])*drand48();
-		}
-
-		int term = -1;
-    mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
-        &nt, &nf, lower, upper, &term);
-
-#if DEBUG
-		printf("\n\n\nMDS %d USED %d ITERATIONS AND %d FUNCTION CALLS, AND RETURNED\n", trial, nt, nf);
-		for (i = 0; i < nvars; i++)
-			printf("x[%3d] = %15.7le \n", i, endpt[i]);
-
-		printf("f(x) = %15.7le\n", fx);
-#endif
-
-		/* keep the best solution */
-		if (fx < best_fx) {
-			best_trial = trial;
-			best_nt = nt;
-			best_nf = nf;
-			best_fx = fx;
-			for (i = 0; i < nvars; i++)
-				best_pt[i] = endpt[i];
+	int term = -1;
+	#pragma omp parallel
+	{
+		#pragma omp single
+		{
+			for (trial = 0; trial < ntrials; trial++) {
+				srand48(trial);
+				
+				#pragma omp task firstprivate(trial) private(startpt, endpt, fx, nt, nf, term, i)
+				{
+					/* starting guess for rosenbrock test function, search space in [-2, 2) */
+					for (i = 0; i < nvars; i++) {
+						startpt[i] = lower[i] + (upper[i]-lower[i])*drand48();
+					}
+				
+					mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
+						&nt, &nf, lower, upper, &term);
+		#if DEBUG
+					printf("\n\n\nMDS %d USED %d ITERATIONS AND %d FUNCTION CALLS, AND RETURNED\n", trial, nt, nf);
+					for (i = 0; i < nvars; i++)
+						printf("x[%3d] = %15.7le \n", i, endpt[i]);
+		
+					printf("f(x) = %15.7le\n", fx);
+		#endif
+					/* keep the best solution */
+					#pragma omp critical
+					{
+						if (fx < best_fx) {
+							best_trial = trial;
+							best_nt = nt;
+							best_nf = nf;
+							best_fx = fx;
+							for (i = 0; i < nvars; i++)
+								best_pt[i] = endpt[i];
+						}
+					}
+				}
+			}
+			#pragma omp taskwait
 		}
 	}
 	t1 = get_wtime();
