@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <mpi/mpi.h>
 
 #define MAXVARS		(250)	/* max # of variables	     */
 #define EPSMIN		(1E-6)	/* ending value of stepsize  */
@@ -45,6 +46,13 @@ double get_wtime(void)
 
 int main(int argc, char *argv[])
 {
+	/* initialize MPI */
+	MPI_Init(&argc, &argv);
+	int size;
+	int rank;
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
 	/* problem parameters */
 	int nvars = 4;		/* number of variables (problem dimension) */
 	int ntrials = 64;	/* number of trials */
@@ -87,16 +95,16 @@ int main(int argc, char *argv[])
 		}
 
 		int term = -1;
-    mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
-        &nt, &nf, lower, upper, &term);
+		mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
+			&nt, &nf, lower, upper, &term);
 
-#if DEBUG
+		#if DEBUG
 		printf("\n\n\nMDS %d USED %d ITERATIONS AND %d FUNCTION CALLS, AND RETURNED\n", trial, nt, nf);
 		for (i = 0; i < nvars; i++)
 			printf("x[%3d] = %15.7le \n", i, endpt[i]);
 
 		printf("f(x) = %15.7le\n", fx);
-#endif
+		#endif
 
 		/* keep the best solution */
 		if (fx < best_fx) {
