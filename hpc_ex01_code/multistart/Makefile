@@ -5,7 +5,7 @@ LDLIBS=-lm
 
 #TODO: add the following cases: multistart_mds_omp multistart_mds_omp_tasks multistart_mds_mpi
 
-all: multistart_mds_seq multistart_mds_omp multistart_mds_omp_tasks test
+all: multistart_mds_seq multistart_mds_omp multistart_mds_omp_tasks multistart_mds_mpi test 
 
 multistart_mds_seq: multistart_mds_seq.c torczon.c Makefile
 	$(CC) $(CFLAGS) -o multistart_mds_seq multistart_mds_seq.c torczon.c $(LDLIBS)
@@ -16,8 +16,11 @@ multistart_mds_omp: multistart_mds_omp.c torczon.c Makefile
 multistart_mds_omp_tasks: multistart_mds_omp_tasks.c torczon.c Makefile
 	$(CC) $(CFLAGS) -o multistart_mds_omp_tasks multistart_mds_omp_tasks.c torczon.c $(LDLIBS)
 
+multistart_mds_mpi: multistart_mds_mpi.c torczon.c Makefile
+	mpicc $(CFLAGS) -o multistart_mds_mpi multistart_mds_mpi.c torczon.c $(LDLIBS)
+
 test: Makefile
 	$(CC) $(CFLAGS) -o test test.c $(LDLIBS)
 
 clean:
-	rm -f multistart_mds_seq multistart_mds_omp multistart_mds_omp_tasks test
+	rm -f multistart_mds_seq multistart_mds_omp multistart_mds_omp_tasks multistart_mds_mpi test
