@@ -87,16 +87,16 @@ int main(int argc, char *argv[])
 		}
 
 		int term = -1;
-    mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
-        &nt, &nf, lower, upper, &term);
+		mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
+			&nt, &nf, lower, upper, &term);
 
-#if DEBUG
+		#if DEBUG
 		printf("\n\n\nMDS %d USED %d ITERATIONS AND %d FUNCTION CALLS, AND RETURNED\n", trial, nt, nf);
 		for (i = 0; i < nvars; i++)
 			printf("x[%3d] = %15.7le \n", i, endpt[i]);
 
 		printf("f(x) = %15.7le\n", fx);
-#endif
+		#endif
 
 		/* keep the best solution */
 		if (fx < best_fx) {
