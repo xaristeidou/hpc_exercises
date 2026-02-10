@@ -20,7 +20,7 @@ multistart_mds_mpi: multistart_mds_mpi.c torczon.c Makefile
 	mpicc $(CFLAGS) -o multistart_mds_mpi multistart_mds_mpi.c torczon.c $(LDLIBS)
 
 test: Makefile
-	$(CC) $(CFLAGS) -o test test.c $(LDLIBS)
+	mpicc $(CFLAGS) -o test test.c $(LDLIBS)
 
 clean:
 	rm -f multistart_mds_seq multistart_mds_omp multistart_mds_omp_tasks multistart_mds_mpi test
