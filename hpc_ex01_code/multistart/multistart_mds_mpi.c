@@ -86,47 +86,59 @@ int main(int argc, char *argv[])
 	for (i = 0; i < MAXVARS; i++) upper[i] = +2.0;	/* upper bound: +2.0 */
 
 	t0 = get_wtime();
-	for (trial = 0; trial < ntrials; trial++) {
-		srand48(trial);
 
-		/* starting guess for rosenbrock test function, search space in [-2, 2) */
-		for (i = 0; i < nvars; i++) {
-			startpt[i] = lower[i] + (upper[i]-lower[i])*drand48();
-		}
+	srand48(rank);
 
-		int term = -1;
-		mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
-			&nt, &nf, lower, upper, &term);
-
-		#if DEBUG
-		printf("\n\n\nMDS %d USED %d ITERATIONS AND %d FUNCTION CALLS, AND RETURNED\n", trial, nt, nf);
-		for (i = 0; i < nvars; i++)
-			printf("x[%3d] = %15.7le \n", i, endpt[i]);
-
-		printf("f(x) = %15.7le\n", fx);
-		#endif
-
-		/* keep the best solution */
-		if (fx < best_fx) {
-			best_trial = trial;
-			best_nt = nt;
-			best_nf = nf;
-			best_fx = fx;
-			for (i = 0; i < nvars; i++)
-				best_pt[i] = endpt[i];
-		}
-	}
-	t1 = get_wtime();
-
-	printf("\n\nFINAL RESULTS:\n");
-	printf("Elapsed time = %.3lf s\n", t1-t0);
-	printf("Total number of trials = %d\n", ntrials);
-	printf("Total number of function evaluations = %ld\n", funevals);
-	printf("Best result at trial %d used %d iterations, %d function calls and returned\n", best_trial, best_nt, best_nf);
+	/* starting guess for rosenbrock test function, search space in [-2, 2) */
 	for (i = 0; i < nvars; i++) {
-		printf("x[%3d] = %15.7le \n", i, best_pt[i]);
+		startpt[i] = lower[i] + (upper[i]-lower[i])*drand48();
 	}
-	printf("f(x) = %15.7le\n", best_fx);
 
+	int term = -1;
+	mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
+		&nt, &nf, lower, upper, &term);
+
+	#if DEBUG
+	printf("\n\n\nMDS %d USED %d ITERATIONS AND %d FUNCTION CALLS, AND RETURNED\n", rank, nt, nf);
+	for (i = 0; i < nvars; i++)
+		printf("x[%3d] = %15.7le \n", i, endpt[i]);
+
+	printf("f(x) = %15.7le\n", fx);
+	#endif
+
+	// TODO: collect all fx from each rank
+	MPI_Reduce(&fx, &best_fx, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+
+	if (rank==0)
+	{
+		printf("Best fx: %f", best_fx);
+	}
+
+	// if (rank==0)
+	// {
+	// 	/* keep the best solution */
+	// 	if (fx < best_fx) {
+	// 		best_trial = trial;
+	// 		best_nt = nt;
+	// 		best_nf = nf;
+	// 		best_fx = fx;
+	// 		for (i = 0; i < nvars; i++)
+	// 			best_pt[i] = endpt[i];
+	// 	}
+	// 	t1 = get_wtime();
+		
+	// 	printf("\n\nFINAL RESULTS:\n");
+	// 	printf("Elapsed time = %.3lf s\n", t1-t0);
+	// 	printf("Total number of trials = %d\n", ntrials);
+	// 	printf("Total number of function evaluations = %ld\n", funevals);
+	// 	printf("Best result at trial %d used %d iterations, %d function calls and returned\n", best_trial, best_nt, best_nf);
+	// 	for (i = 0; i < nvars; i++) {
+	// 		printf("x[%3d] = %15.7le \n", i, best_pt[i]);
+	// 	}
+	// 	printf("f(x) = %15.7le\n", best_fx);
+	// }
+
+	MPI_Finalize();
 	return 0;
 }
+
