@@ -1,9 +1,12 @@
+import os
 import numpy as np
+import time
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from concurrent.futures import ThreadPoolExecutor
 
 # -----------------------------
 # 1. Big, sparse-signal problem
@@ -33,20 +36,10 @@ scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_val = scaler.transform(X_val)
 
-# -----------------------------
-# 2. Single-parameter HPO on C
-#    (log-uniform random search)
-# -----------------------------
-rng = np.random.default_rng(0)
-n_trials = 32
-results = []
-
-# Cs = np.logspace(-5, -1, 32)  # 1e-4 ... 1e-1
-# for i, C in enumerate(Cs):
-
-for i in range(n_trials):
-    # log-uniform C in [1e-5, 1e+2]
-    C = 10 ** rng.uniform(-5, -1)
+# Function for to train and evaluation accuracy
+def train_and_evaluate(parameters):
+    i = parameters[0]
+    C = parameters[1]
 
     clf = LogisticRegression(
         C=C,
@@ -59,9 +52,38 @@ for i in range(n_trials):
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_val)
     acc = accuracy_score(y_val, y_pred)
+    
+    return i, C, acc
 
-    print(f"{i:02d}: C={C:.3e}, acc={acc:.4f}")
-    results.append((C, acc))
+# -----------------------------
+# 2. Single-parameter HPO on C
+#    (log-uniform random search - parallelized with concurrent.futures)
+# -----------------------------
+rng = np.random.default_rng(0)
+n_trials = 32
+results = []
+
+# generate all trial parameters
+iter_and_C_values = []
+
+start_time = time.time()
+for i in range(n_trials):
+    # log-uniform C in [1e-5, 1e+2]
+    C = 10 ** rng.uniform(-5, -1)
+    iter_and_C_values.append((i, C))
+
+# run trials in parallel using ThreadPoolExecutor
+with ThreadPoolExecutor(max_workers=2) as executor:
+    # create and add each future to a list
+    futures_list = [executor.submit(train_and_evaluate, params) for params in iter_and_C_values]
+    
+    # parse the list and get the result of each future
+    for future in futures_list:
+        i, C, acc = future.result()
+        print(f"{i:02d}: C={C:.3e}, acc={acc:.4f}")
+        results.append((C, acc))
+
+finish_time = time.time()
 
 # -----------------------------
 # 3. Best C
@@ -69,3 +91,4 @@ for i in range(n_trials):
 best_C, best_acc = max(results, key=lambda t: t[1])
 print("\nBest result:")
 print(f"C={best_C:.3e}, acc={best_acc:.4f}")
+print(f"Total time execution: {finish_time-start_time}")
