@@ -1,5 +1,6 @@
 import numpy as np
 import time
+from mpi4py import MPI
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
@@ -34,22 +35,34 @@ scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_val = scaler.transform(X_val)
 
-# -----------------------------
-# 2. Single-parameter HPO on C
-#    (log-uniform random search)
-# -----------------------------
+# Initialize MPI
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
+
+# Generate all trial parameters (only on rank 0, then broadcast)
 rng = np.random.default_rng(0)
 n_trials = 32
-results = []
 
-# Cs = np.logspace(-5, -1, 32)  # 1e-4 ... 1e-1
-# for i, C in enumerate(Cs):
+if rank == 0:
+    trial_params = []
+    for i in range(n_trials):
+        # log-uniform C in [1e-5, 1e+2]
+        C = 10 ** rng.uniform(-5, -1)
+        trial_params.append((i, C))
+    start_time = time.time()
+else:
+    trial_params = None
 
-start_time = time.time()
-for i in range(n_trials):
-    # log-uniform C in [1e-5, 1e+2]
-    C = 10 ** rng.uniform(-5, -1)
+# Broadcast all trial parameters to all ranks
+trial_params = comm.bcast(trial_params, root=0)
 
+# Distribute trials: each rank processes a subset
+local_trials = [trial_params[i] for i in range(len(trial_params)) if i % size == rank]
+
+# Process local trials
+local_results = []
+for i, C in local_trials:
     clf = LogisticRegression(
         C=C,
         penalty="l1",
@@ -61,16 +74,31 @@ for i in range(n_trials):
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_val)
     acc = accuracy_score(y_val, y_pred)
+    
+    local_results.append((i, C, acc))
 
-    print(f"{i:02d}: C={C:.3e}, acc={acc:.4f}")
-    results.append((C, acc))
+# Gather all results to rank 0
+all_results = comm.gather(local_results, root=0)
 
-finish_time = time.time()
-
-# -----------------------------
-# 3. Best C
-# -----------------------------
-best_C, best_acc = max(results, key=lambda t: t[1])
-print("\nBest result:")
-print(f"C={best_C:.3e}, acc={best_acc:.4f}")
-print(f"Total time execution: {finish_time-start_time}")
+# Process results on rank 0
+if rank == 0:
+    results = []
+    for rank_results in all_results:
+        results.extend(rank_results)
+    
+    # Sort by trial index for consistent output
+    results.sort(key=lambda x: x[0])
+    
+    print("# Single-parameter HPO on C (log-uniform random search)")
+    print("# Parallelized with MPI")
+    for i, C, acc in results:
+        print(f"{i:02d}: C={C:.3e}, acc={acc:.4f}")
+    
+    # Find best C
+    best_C, best_acc = max([(C, acc) for _, C, acc in results], key=lambda t: t[1])
+    finish_time = time.time()
+    
+    print("\nBest result:")
+    print(f"C={best_C:.3e}, acc={best_acc:.4f}")
+    print(f"Total time execution: {finish_time-start_time:.4f}s")
+    print(f"MPI processes used: {size}")
