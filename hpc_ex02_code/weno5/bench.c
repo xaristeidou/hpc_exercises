@@ -69,7 +69,7 @@ void check_error(const double tol, float ref[], float val[], const int N)
 
 void benchmark(int argc, char *argv[], const int NENTRIES_, const int NTIMES, const int verbose, char *benchmark_name)
 {
-	const int NENTRIES = 4 * (NENTRIES_ / 4);
+	const int NENTRIES = 8 * (NENTRIES_ / 8);
 
 	printf("nentries set to %f\n", (float)NENTRIES);
 
@@ -101,6 +101,13 @@ void benchmark(int argc, char *argv[], const int NENTRIES_, const int NTIMES, co
 	const double tol_sse = 1e-4;
 	printf("minus SSE: verifying accuracy with tolerance %.5e...", tol_sse);
 	check_error(tol_sse, gold, result, NENTRIES);
+	printf("passed!\n");
+
+	weno_minus_avx(a, b, c, d, e, result, NENTRIES);
+
+	const double tol_avx = 1e-4;
+	printf("minus AVX: verifying accuracy with tolerance %.5e...", tol_avx);
+	check_error(tol_avx, gold, result, NENTRIES);
 	printf("passed!\n");
 
 	free(a);
