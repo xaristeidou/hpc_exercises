@@ -96,6 +96,13 @@ void benchmark(int argc, char *argv[], const int NENTRIES_, const int NTIMES, co
 	check_error(tol, gold, result, NENTRIES);
 	printf("passed!\n");
 
+	weno_minus_sse(a, b, c, d, e, result, NENTRIES);
+
+	const double tol_sse = 1e-4;
+	printf("minus SSE: verifying accuracy with tolerance %.5e...", tol_sse);
+	check_error(tol_sse, gold, result, NENTRIES);
+	printf("passed!\n");
+
 	free(a);
 	free(b);
 	free(c);

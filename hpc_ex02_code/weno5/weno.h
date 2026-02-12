@@ -1,5 +1,7 @@
 #pragma once
 
+#include <xmmintrin.h> /* SSE intrinsics */
+
 float weno_minus_core(const float a, const float b, const float c, const float d, const float e)
 {
 		const float is0 = a*(a*(float)(4./3.)  - b*(float)(19./3.)  + c*(float)(11./3.)) + b*(b*(float)(25./3.)  - c*(float)(31./3.)) + c*c*(float)(10./3.);
@@ -40,4 +42,121 @@ void weno_minus_vectorized(const float * const a, const float * const b, const f
 		#pragma omp simd
 		for (int i=0; i<NENTRIES; ++i)
 			out[i] = weno_minus_core(a[i], b[i], c[i], d[i], e[i]);
+}
+
+void weno_minus_sse(const float * const a, const float * const b, const float * const c,
+		    const float * const d, const float * const e, float * const out,
+		    const int NENTRIES)
+{
+	/* Broadcast all constants into SSE registers */
+	const __m128 eps   = _mm_set1_ps((float)WENOEPS);
+	const __m128 one   = _mm_set1_ps(1.0f);
+
+	/* Smoothness indicator coefficients */
+	const __m128 c4_3  = _mm_set1_ps(4.f/3.f);
+	const __m128 c19_3 = _mm_set1_ps(19.f/3.f);
+	const __m128 c11_3 = _mm_set1_ps(11.f/3.f);
+	const __m128 c25_3 = _mm_set1_ps(25.f/3.f);
+	const __m128 c31_3 = _mm_set1_ps(31.f/3.f);
+	const __m128 c10_3 = _mm_set1_ps(10.f/3.f);
+	const __m128 c13_3 = _mm_set1_ps(13.f/3.f);
+	const __m128 c5_3  = _mm_set1_ps(5.f/3.f);
+
+	/* Ideal weights */
+	const __m128 w0    = _mm_set1_ps(0.1f);
+	const __m128 w1    = _mm_set1_ps(0.6f);
+
+	/* Reconstruction coefficients */
+	const __m128 c1_3  = _mm_set1_ps(1.f/3.f);
+	const __m128 c7_6  = _mm_set1_ps(7.f/6.f);
+	const __m128 c11_6 = _mm_set1_ps(11.f/6.f);
+	const __m128 c1_6  = _mm_set1_ps(1.f/6.f);
+	const __m128 c5_6  = _mm_set1_ps(5.f/6.f);
+
+	/* Process 4 floats per iteration (128-bit SSE register) */
+	for (int i = 0; i < NENTRIES; i += 4)
+	{
+		/* Load 4 elements from each input array (aligned) */
+		const __m128 va = _mm_load_ps(a + i);
+		const __m128 vb = _mm_load_ps(b + i);
+		const __m128 vc = _mm_load_ps(c + i);
+		const __m128 vd = _mm_load_ps(d + i);
+		const __m128 ve = _mm_load_ps(e + i);
+
+		/* is0 = a*(a*4/3 - b*19/3 + c*11/3) + b*(b*25/3 - c*31/3) + c*c*10/3 */
+		const __m128 is0 = _mm_add_ps(
+			_mm_add_ps(
+				_mm_mul_ps(va, _mm_add_ps(_mm_sub_ps(
+					_mm_mul_ps(va, c4_3),
+					_mm_mul_ps(vb, c19_3)),
+					_mm_mul_ps(vc, c11_3))),
+				_mm_mul_ps(vb, _mm_sub_ps(
+					_mm_mul_ps(vb, c25_3),
+					_mm_mul_ps(vc, c31_3)))),
+			_mm_mul_ps(_mm_mul_ps(vc, vc), c10_3));
+
+		/* is1 = b*(b*4/3 - c*13/3 + d*5/3) + c*(c*13/3 - d*13/3) + d*d*4/3 */
+		const __m128 is1 = _mm_add_ps(
+			_mm_add_ps(
+				_mm_mul_ps(vb, _mm_add_ps(_mm_sub_ps(
+					_mm_mul_ps(vb, c4_3),
+					_mm_mul_ps(vc, c13_3)),
+					_mm_mul_ps(vd, c5_3))),
+				_mm_mul_ps(vc, _mm_sub_ps(
+					_mm_mul_ps(vc, c13_3),
+					_mm_mul_ps(vd, c13_3)))),
+			_mm_mul_ps(_mm_mul_ps(vd, vd), c4_3));
+
+		/* is2 = c*(c*10/3 - d*31/3 + e*11/3) + d*(d*25/3 - e*19/3) + e*e*4/3 */
+		const __m128 is2 = _mm_add_ps(
+			_mm_add_ps(
+				_mm_mul_ps(vc, _mm_add_ps(_mm_sub_ps(
+					_mm_mul_ps(vc, c10_3),
+					_mm_mul_ps(vd, c31_3)),
+					_mm_mul_ps(ve, c11_3))),
+				_mm_mul_ps(vd, _mm_sub_ps(
+					_mm_mul_ps(vd, c25_3),
+					_mm_mul_ps(ve, c19_3)))),
+			_mm_mul_ps(_mm_mul_ps(ve, ve), c4_3));
+
+		/* Add epsilon to smoothness indicators */
+		const __m128 is0p = _mm_add_ps(is0, eps);
+		const __m128 is1p = _mm_add_ps(is1, eps);
+		const __m128 is2p = _mm_add_ps(is2, eps);
+
+		/* alpha_k = d_k / (is_k + eps)^2 */
+		const __m128 alpha0 = _mm_mul_ps(w0, _mm_div_ps(one, _mm_mul_ps(is0p, is0p)));
+		const __m128 alpha1 = _mm_mul_ps(w1, _mm_div_ps(one, _mm_mul_ps(is1p, is1p)));
+		const __m128 alpha2 = _mm_mul_ps(_mm_set1_ps(0.3f), _mm_div_ps(one, _mm_mul_ps(is2p, is2p)));
+
+		const __m128 alphasum = _mm_add_ps(_mm_add_ps(alpha0, alpha1), alpha2);
+		const __m128 inv_alpha = _mm_div_ps(one, alphasum);
+
+		/* Nonlinear weights */
+		const __m128 omega0 = _mm_mul_ps(alpha0, inv_alpha);
+		const __m128 omega1 = _mm_mul_ps(alpha1, inv_alpha);
+		const __m128 omega2 = _mm_sub_ps(_mm_sub_ps(one, omega0), omega1);
+
+		/* Reconstruction polynomials */
+		const __m128 r0 = _mm_add_ps(_mm_sub_ps(
+			_mm_mul_ps(c1_3, va),
+			_mm_mul_ps(c7_6, vb)),
+			_mm_mul_ps(c11_6, vc));
+		const __m128 r1 = _mm_add_ps(_mm_sub_ps(
+			_mm_mul_ps(c5_6, vc),
+			_mm_mul_ps(c1_6, vb)),
+			_mm_mul_ps(c1_3, vd));
+		const __m128 r2 = _mm_sub_ps(_mm_add_ps(
+			_mm_mul_ps(c1_3, vc),
+			_mm_mul_ps(c5_6, vd)),
+			_mm_mul_ps(c1_6, ve));
+
+		/* Weighted combination and store (aligned) */
+		const __m128 res = _mm_add_ps(_mm_add_ps(
+			_mm_mul_ps(omega0, r0),
+			_mm_mul_ps(omega1, r1)),
+			_mm_mul_ps(omega2, r2));
+
+		_mm_store_ps(out + i, res);
+	}
 }
