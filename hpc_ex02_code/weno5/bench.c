@@ -71,7 +71,24 @@ void benchmark(int argc, char *argv[], const int NENTRIES_, const int NTIMES, co
 {
 	const int NENTRIES = 8 * (NENTRIES_ / 8);
 
-	printf("nentries set to %f\n", (float)NENTRIES);
+	/*
+	 * FLOP count per element for weno_minus_core:
+	 *   3 smoothness indicators (is0,is1,is2): 13 each = 39
+	 *   3 epsilon additions:                           =  3
+	 *   3 alpha computations (mul,div,mul):             =  9
+	 *   alphasum (2 adds):                             =  2
+	 *   inv_alpha (1 div):                             =  1
+	 *   3 omega weights (2 muls + 2 subs):             =  4
+	 *   3 reconstruction polynomials: 5 each           = 15
+	 *   final weighted sum (3 muls + 2 adds):          =  5
+	 *   TOTAL:                                         = 78
+	 */
+	const double FLOPS_PER_ELEMENT = 78.0;
+
+	/* Memory traffic per element: read 5 floats + write 1 float = 6 * 4 bytes = 24 bytes */
+	const double BYTES_PER_ELEMENT = 6.0 * sizeof(float);
+
+	printf("nentries set to %d (%s)\n", NENTRIES, benchmark_name);
 
 	float * const a = myalloc(NENTRIES, verbose);
 	float * const b = myalloc(NENTRIES, verbose);
@@ -82,33 +99,82 @@ void benchmark(int argc, char *argv[], const int NENTRIES_, const int NTIMES, co
 	float * const gold = myalloc(NENTRIES, verbose);
 	float * const result = myalloc(NENTRIES, verbose);
 
+	/* Compute reference solution */
 	weno_minus_reference(a, b, c, d, e, gold, NENTRIES);
-	weno_minus_reference(a, b, c, d, e, result, NENTRIES);
 
 	const double tol = 1e-5;
-	printf("minus: verifying accuracy with tolerance %.5e...", tol);
-	check_error(tol, gold, result, NENTRIES);
-	printf("passed!\n");
+	const double tol_intrinsics = 1e-4;
 
-	weno_minus_vectorized(a, b, c, d, e, result, NENTRIES);
+	/* ---- Benchmark: Scalar reference ---- */
+	{
+		/* Warmup */
+		weno_minus_reference(a, b, c, d, e, result, NENTRIES);
+		check_error(tol, gold, result, NENTRIES);
 
-	printf("minus vectorized: verifying accuracy with tolerance %.5e...", tol);
-	check_error(tol, gold, result, NENTRIES);
-	printf("passed!\n");
+		double t0 = get_wtime();
+		for (int t = 0; t < NTIMES; ++t)
+			weno_minus_reference(a, b, c, d, e, result, NENTRIES);
+		double t1 = get_wtime();
 
-	weno_minus_sse(a, b, c, d, e, result, NENTRIES);
+		double elapsed = t1 - t0;
+		double total_flops = FLOPS_PER_ELEMENT * NENTRIES * NTIMES;
+		double total_bytes = BYTES_PER_ELEMENT * NENTRIES * NTIMES;
+		printf("  %-20s  time: %10.6f s  |  %8.3f GFLOP/s  |  %8.3f GB/s\n",
+		       "Scalar", elapsed, total_flops / elapsed * 1e-9, total_bytes / elapsed * 1e-9);
+	}
 
-	const double tol_sse = 1e-4;
-	printf("minus SSE: verifying accuracy with tolerance %.5e...", tol_sse);
-	check_error(tol_sse, gold, result, NENTRIES);
-	printf("passed!\n");
+	/* ---- Benchmark: OpenMP SIMD ---- */
+	{
+		weno_minus_vectorized(a, b, c, d, e, result, NENTRIES);
+		check_error(tol, gold, result, NENTRIES);
 
-	weno_minus_avx(a, b, c, d, e, result, NENTRIES);
+		double t0 = get_wtime();
+		for (int t = 0; t < NTIMES; ++t)
+			weno_minus_vectorized(a, b, c, d, e, result, NENTRIES);
+		double t1 = get_wtime();
 
-	const double tol_avx = 1e-4;
-	printf("minus AVX: verifying accuracy with tolerance %.5e...", tol_avx);
-	check_error(tol_avx, gold, result, NENTRIES);
-	printf("passed!\n");
+		double elapsed = t1 - t0;
+		double total_flops = FLOPS_PER_ELEMENT * NENTRIES * NTIMES;
+		double total_bytes = BYTES_PER_ELEMENT * NENTRIES * NTIMES;
+		printf("  %-20s  time: %10.6f s  |  %8.3f GFLOP/s  |  %8.3f GB/s\n",
+		       "OMP SIMD", elapsed, total_flops / elapsed * 1e-9, total_bytes / elapsed * 1e-9);
+	}
+
+	/* ---- Benchmark: SSE intrinsics ---- */
+	{
+		weno_minus_sse(a, b, c, d, e, result, NENTRIES);
+		check_error(tol_intrinsics, gold, result, NENTRIES);
+
+		double t0 = get_wtime();
+		for (int t = 0; t < NTIMES; ++t)
+			weno_minus_sse(a, b, c, d, e, result, NENTRIES);
+		double t1 = get_wtime();
+
+		double elapsed = t1 - t0;
+		double total_flops = FLOPS_PER_ELEMENT * NENTRIES * NTIMES;
+		double total_bytes = BYTES_PER_ELEMENT * NENTRIES * NTIMES;
+		printf("  %-20s  time: %10.6f s  |  %8.3f GFLOP/s  |  %8.3f GB/s\n",
+		       "SSE intrinsics", elapsed, total_flops / elapsed * 1e-9, total_bytes / elapsed * 1e-9);
+	}
+
+	/* ---- Benchmark: AVX intrinsics ---- */
+	{
+		weno_minus_avx(a, b, c, d, e, result, NENTRIES);
+		check_error(tol_intrinsics, gold, result, NENTRIES);
+
+		double t0 = get_wtime();
+		for (int t = 0; t < NTIMES; ++t)
+			weno_minus_avx(a, b, c, d, e, result, NENTRIES);
+		double t1 = get_wtime();
+
+		double elapsed = t1 - t0;
+		double total_flops = FLOPS_PER_ELEMENT * NENTRIES * NTIMES;
+		double total_bytes = BYTES_PER_ELEMENT * NENTRIES * NTIMES;
+		printf("  %-20s  time: %10.6f s  |  %8.3f GFLOP/s  |  %8.3f GB/s\n",
+		       "AVX intrinsics", elapsed, total_flops / elapsed * 1e-9, total_bytes / elapsed * 1e-9);
+	}
+
+	printf("\n");
 
 	free(a);
 	free(b);
@@ -121,7 +187,10 @@ void benchmark(int argc, char *argv[], const int NENTRIES_, const int NTIMES, co
 
 int main (int argc, char *  argv[])
 {
-	printf("Hello, weno benchmark!\n");
+	printf("=================================================================\n");
+	printf("  WENO5 Benchmark — 78 FLOPs per element, 24 bytes per element\n");
+	printf("=================================================================\n\n");
+
 	const int debug = 0;
 
 	if (debug)
@@ -130,28 +199,28 @@ int main (int argc, char *  argv[])
 		return 0;
 	}
 
-	/* performance on cache hits */
+	/* PEAK-LIKE: data fits in L1/L2 cache → measures compute throughput */
 	{
-		const double desired_kb =  16 * 4 * 0.5; /* we want to fill 50% of the dcache */
-		const int nentries =  16 * (int)(pow(32 + 6, 2) * 4);//floor(desired_kb * 1024. / 7 / sizeof(float));
-		const int ntimes = (int)floor(2. / (1e-7 * nentries));
+		const int nentries = 16 * (int)(pow(32 + 6, 2) * 4);  /* ~92k elements ≈ 2.1 MB total */
+		const int ntimes = (int)floor(2. / (1e-7 * nentries)); /* enough iterations for ~2s */
 
-		for(int i=0; i<4; ++i)
+		for(int i = 0; i < 4; ++i)
 		{
 			printf("*************** PEAK-LIKE BENCHMARK (RUN %d) **************************\n", i);
 			benchmark(argc, argv, nentries, ntimes, 0, "cache");
 		}
 	}
 
-	/* performance on data streams */
+	/* STREAM-LIKE: data exceeds last-level cache → measures memory bandwidth */
 	{
-		const double desired_mb =  128 * 4;
-		const int nentries =  (int)floor(desired_mb * 1024. * 1024. / 7 / sizeof(float));
+		const double desired_mb = 128 * 4;
+		const int nentries = (int)floor(desired_mb * 1024. * 1024. / 7 / sizeof(float));
+		const int ntimes = 3;  /* fewer iterations since each is expensive */
 
-		for(int i=0; i<4; ++i)
+		for(int i = 0; i < 4; ++i)
 		{
 			printf("*************** STREAM-LIKE BENCHMARK (RUN %d) **************************\n", i);
-			benchmark(argc, argv, nentries, 1, 0, "stream");
+			benchmark(argc, argv, nentries, ntimes, 0, "stream");
 		}
 	}
 
