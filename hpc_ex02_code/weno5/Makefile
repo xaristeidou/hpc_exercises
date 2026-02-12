@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O2
+CFLAGS=-O3 -march=native -fopenmp
 LIBS=-lm
 
 all: bench

@@ -29,7 +29,15 @@ void weno_minus_reference(const float * const a, const float * const b, const fl
 			  const float * const d, const float * const e, float * const out,
 			  const int NENTRIES)
 {
-//#pragma omp for
+		for (int i=0; i<NENTRIES; ++i)
+			out[i] = weno_minus_core(a[i], b[i], c[i], d[i], e[i]);
+}
+
+void weno_minus_vectorized(const float * const a, const float * const b, const float * const c,
+			   const float * const d, const float * const e, float * const out,
+			   const int NENTRIES)
+{
+		#pragma omp simd
 		for (int i=0; i<NENTRIES; ++i)
 			out[i] = weno_minus_core(a[i], b[i], c[i], d[i], e[i]);
 }

@@ -71,7 +71,7 @@ void benchmark(int argc, char *argv[], const int NENTRIES_, const int NTIMES, co
 {
 	const int NENTRIES = 4 * (NENTRIES_ / 4);
 
-	printf("nentries set to %e\n", (float)NENTRIES);
+	printf("nentries set to %f\n", (float)NENTRIES);
 
 	float * const a = myalloc(NENTRIES, verbose);
 	float * const b = myalloc(NENTRIES, verbose);
@@ -90,6 +90,12 @@ void benchmark(int argc, char *argv[], const int NENTRIES_, const int NTIMES, co
 	check_error(tol, gold, result, NENTRIES);
 	printf("passed!\n");
 
+	weno_minus_vectorized(a, b, c, d, e, result, NENTRIES);
+
+	printf("minus vectorized: verifying accuracy with tolerance %.5e...", tol);
+	check_error(tol, gold, result, NENTRIES);
+	printf("passed!\n");
+
 	free(a);
 	free(b);
 	free(c);
@@ -102,7 +108,7 @@ void benchmark(int argc, char *argv[], const int NENTRIES_, const int NTIMES, co
 int main (int argc, char *  argv[])
 {
 	printf("Hello, weno benchmark!\n");
-	const int debug = 1;
+	const int debug = 0;
 
 	if (debug)
 	{
