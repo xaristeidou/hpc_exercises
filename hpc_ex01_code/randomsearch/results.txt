@@ -1,0 +1,87 @@
+-rs:
+    Best result:
+    C=5.673e-03, acc=0.8633
+    Total time execution: 70.31058502197266
+
+
+-rs_concurrent_futures:
+--threads 2:
+    Best result:
+    C=8.291e-03, acc=0.8633
+    Total time execution: 38.91091537475586
+
+--threads 4:
+    Best result:
+    C=5.523e-03, acc=0.8633
+    Total time execution: 23.251010417938232
+
+--threads 8:
+    Best result:
+    C=5.673e-03, acc=0.8633
+    Total time execution: 16.644730806350708
+
+--threads 16:
+    Best result:
+    C=5.673e-03, acc=0.8633
+    Total time execution: 15.331109046936035
+
+
+-rs_mpi4py_futures: (mpiexec -n 8 python3 -m mpi4py.futures rs_mpi4py_futures.py)
+--procs 2:
+    Best result:
+    C=5.523e-03, acc=0.8633
+    Total time execution: 69.9514s
+
+--procs 4:
+    Best result:
+    C=5.523e-03, acc=0.8633
+    Total time execution: 30.4288s
+
+--procs 8:
+    Best result:
+    C=5.673e-03, acc=0.8633
+    Total time execution: 20.6534s
+
+--procs 16:
+    Best result:
+    C=5.523e-03, acc=0.8633
+    Total time execution: 23.1712s
+
+
+Why MPI is slower than ThreadPoolExecutor at equivalent parallelism:
+
+Each MPI process runs in a separate address space — results must be pickled/unpickled between processes, adding overhead
+Each of the N processes regenerates its own copy of the 100K×200 dataset in memory, increasing memory pressure
+Fewer effective workers: -n 8 = 7 workers vs 8 threads
+Why 16 procs is slower than 8 procs:
+
+15 workers + 1 master = 16 processes on 8 physical cores → oversubscribed
+16 copies of the dataset (~150MB+ each) causes memory contention and cache thrashing
+Unlike the C usleep example, this is real CPU-bound work, so oversubscription hurts
+The ThreadPoolExecutor version scales better here because scikit-learn releases the GIL during computation and threads share the same data in memory (zero copy overhead).
+
+
+-rs_mpi4py: (mpiexec -n 8 python3 rs_mpi4py.py)
+--nprocs 2:
+    Best result:
+    C=5.523e-03, acc=0.8633
+    Total time execution: 37.9831s
+
+--nprocs 4:
+    Best result:
+    C=5.523e-03, acc=0.8633
+    Total time execution: 24.5114s
+
+--nprocs 8:
+    Best result:
+    C=5.523e-03, acc=0.8633
+    Total time execution: 17.0280s
+
+--nprocs 16:
+    Best result:
+    C=5.523e-03, acc=0.8633
+    Total time execution: 17.2098s
+
+
+This version uses MPI.COMM_WORLD directly (not mpi4py.futures), so no -m mpi4py.futures is needed.
+All N processes are workers — there's no master/worker overhead, so -n 8 gives you 8 workers (vs 7 with the futures version).
