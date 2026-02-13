@@ -81,18 +81,23 @@ int main(int argc, char *argv[])
 
 	t0 = get_wtime();
 	int term = -1;
-	#pragma omp parallel
+	#pragma omp parallel num_threads(omp_get_max_threads())
 	{
 		#pragma omp single
 		{
 			for (trial = 0; trial < ntrials; trial++) {
-				srand48(trial);
 				
 				#pragma omp task firstprivate(trial) private(startpt, endpt, fx, nt, nf, term, i)
 				{
+					/* seed a per-task random buffer for thread safety */
+					struct drand48_data rng_buf;
+					srand48_r(trial, &rng_buf);
+
 					/* starting guess for rosenbrock test function, search space in [-2, 2) */
+					double rval;
 					for (i = 0; i < nvars; i++) {
-						startpt[i] = lower[i] + (upper[i]-lower[i])*drand48();
+						drand48_r(&rng_buf, &rval);
+						startpt[i] = lower[i] + (upper[i]-lower[i])*rval;
 					}
 				
 					mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,

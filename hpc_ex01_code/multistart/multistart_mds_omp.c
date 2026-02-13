@@ -85,11 +85,15 @@ int main(int argc, char *argv[])
 	int term = -1;
 	#pragma omp parallel for private(trial, i, startpt, endpt, fx, nt, nf, term) num_threads(NUM_THREADS)
 	for (trial = 0; trial < ntrials; trial++) {
-		srand48(trial);
+		/* seed a per-thread random buffer for thread safety */
+		struct drand48_data rng_buf;
+		srand48_r(trial, &rng_buf);
 
 		/* starting guess for rosenbrock test function, search space in [-2, 2) */
+		double rval;
 		for (i = 0; i < nvars; i++) {
-			startpt[i] = lower[i] + (upper[i]-lower[i])*drand48();
+			drand48_r(&rng_buf, &rval);
+			startpt[i] = lower[i] + (upper[i]-lower[i])*rval;
 		}
 
 		mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,

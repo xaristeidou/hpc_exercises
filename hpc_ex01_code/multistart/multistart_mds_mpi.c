@@ -94,68 +94,88 @@ int main(int argc, char *argv[])
 
 	t0 = get_wtime();
 
-	srand48(rank);
-
-	/* starting guess for rosenbrock test function, search space in [-2, 2) */
-	for (i = 0; i < nvars; i++) {
-		startpt[i] = lower[i] + (upper[i]-lower[i])*drand48();
-	}
+	/* distribute trials across MPI processes */
+	int trials_per_proc = ntrials / size;
+	int remainder = ntrials % size;
+	int my_start = rank * trials_per_proc + (rank < remainder ? rank : remainder);
+	int my_count = trials_per_proc + (rank < remainder ? 1 : 0);
 
 	int term = -1;
-	mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
-		&nt, &nf, lower, upper, &term);
+	int trial;
 
+	/* each process runs its share of trials */
+	for (trial = my_start; trial < my_start + my_count; trial++) {
+		srand48(trial);
 
-	#if DEBUG
-	printf("\n\n\nMDS %d USED %d ITERATIONS AND %d FUNCTION CALLS, AND RETURNED\n", rank, nt, nf);
-	for (i = 0; i < nvars; i++)
-		printf("x[%3d] = %15.7le \n", i, endpt[i]);
+		/* starting guess for rosenbrock test function, search space in [-2, 2) */
+		for (i = 0; i < nvars; i++) {
+			startpt[i] = lower[i] + (upper[i]-lower[i])*drand48();
+		}
 
-	printf("f(x) = %15.7le\n", fx);
-	#endif
+		mds(startpt, endpt, nvars, &fx, eps, maxfevals, maxiter, mu, theta, delta,
+			&nt, &nf, lower, upper, &term);
 
-	// TODO: collect all fx from each rank
-	// MPI_Reduce(&fx, &best_fx, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+#if DEBUG
+		printf("\n\n\nMDS %d USED %d ITERATIONS AND %d FUNCTION CALLS, AND RETURNED\n", trial, nt, nf);
+		for (i = 0; i < nvars; i++)
+			printf("x[%3d] = %15.7le \n", i, endpt[i]);
+		printf("f(x) = %15.7le\n", fx);
+#endif
 
-	if (rank==0)
-	{		
-		for (int i=1; i<size; i++)
-		{
-			printf("I am in iteration: %d\n\n", i);
-			MPI_Recv(&fx, 1, MPI_DOUBLE, i, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			MPI_Recv(&nt, 1, MPI_INT, i, 43, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			MPI_Recv(&nf, 1, MPI_INT, i, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			MPI_Recv(&endpt, MAXVARS, MPI_DOUBLE, i, 45, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			
-			/* keep the best solution */
-			if (fx < best_fx)
-			{
-				best_trial = i;
-				best_nt = nt;
-				best_nf = nf;
-				best_fx = fx;
-				for (i = 0; i < nvars; i++)
-					best_pt[i] = endpt[i];
+		/* keep the local best solution */
+		if (fx < best_fx) {
+			best_trial = trial;
+			best_nt = nt;
+			best_nf = nf;
+			best_fx = fx;
+			for (i = 0; i < nvars; i++)
+				best_pt[i] = endpt[i];
+		}
+	}
+
+	/* reduce funevals across all processes */
+	unsigned long total_funevals = 0;
+	MPI_Reduce(&funevals, &total_funevals, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+
+	/* gather best results: each process sends its local best to rank 0 */
+	if (rank == 0) {
+		for (int i = 1; i < size; i++) {
+			double recv_fx;
+			int recv_trial, recv_nt, recv_nf;
+			double recv_pt[MAXVARS];
+
+			MPI_Recv(&recv_fx, 1, MPI_DOUBLE, i, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&recv_trial, 1, MPI_INT, i, 43, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&recv_nt, 1, MPI_INT, i, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&recv_nf, 1, MPI_INT, i, 45, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(recv_pt, MAXVARS, MPI_DOUBLE, i, 46, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+			if (recv_fx < best_fx) {
+				best_trial = recv_trial;
+				best_nt = recv_nt;
+				best_nf = recv_nf;
+				best_fx = recv_fx;
+				for (int j = 0; j < nvars; j++)
+					best_pt[j] = recv_pt[j];
 			}
 		}
+
 		t1 = get_wtime();
 		printf("\n\nFINAL RESULTS:\n");
 		printf("Elapsed time = %.3lf s\n", t1-t0);
 		printf("Total number of trials = %d\n", ntrials);
-		printf("Total number of function evaluations = %ld\n", funevals);
+		printf("Total number of function evaluations = %ld\n", total_funevals);
 		printf("Best result at trial %d used %d iterations, %d function calls and returned\n", best_trial, best_nt, best_nf);
 		for (i = 0; i < nvars; i++) {
 			printf("x[%3d] = %15.7le \n", i, best_pt[i]);
 		}
 		printf("f(x) = %15.7le\n", best_fx);
-	}
-	else
-	{
-		printf("I am sending data my ID is: %d: ", rank);
-		MPI_Ssend(&fx, 1, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD);
-		MPI_Ssend(&nt, 1, MPI_INT, 0, 43, MPI_COMM_WORLD);
-		MPI_Ssend(&nf, 1, MPI_INT, 0, 44, MPI_COMM_WORLD);
-		MPI_Ssend(&endpt, MAXVARS, MPI_INT, 0, 45, MPI_COMM_WORLD);
+	} else {
+		MPI_Ssend(&best_fx, 1, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD);
+		MPI_Ssend(&best_trial, 1, MPI_INT, 0, 43, MPI_COMM_WORLD);
+		MPI_Ssend(&best_nt, 1, MPI_INT, 0, 44, MPI_COMM_WORLD);
+		MPI_Ssend(&best_nf, 1, MPI_INT, 0, 45, MPI_COMM_WORLD);
+		MPI_Ssend(best_pt, MAXVARS, MPI_DOUBLE, 0, 46, MPI_COMM_WORLD);
 	}
 
 
