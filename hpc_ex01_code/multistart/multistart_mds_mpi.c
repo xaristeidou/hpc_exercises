@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 	int best_nf = -1;
 
 	/* local variables */
-	int trial, i;
+	int i;
 	double t0, t1;
 
 	/* initialization of lower and upper bounds of search space */
