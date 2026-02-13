@@ -73,7 +73,7 @@ for i in range(n_trials):
     iter_and_C_values.append((i, C))
 
 # run trials in parallel using ThreadPoolExecutor
-with ThreadPoolExecutor(max_workers=2) as executor:
+with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
     # create and add each future to a list
     futures_list = [executor.submit(train_and_evaluate, params) for params in iter_and_C_values]
     
