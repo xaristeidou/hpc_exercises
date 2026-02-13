@@ -10,6 +10,7 @@
     x[  3] =   1.1671989e+00 
     f(x) =   8.3729430e-03
 
+
 -multistart_mds_omp
 --threads 2:
     FINAL RESULTS:
@@ -59,3 +60,102 @@
     x[  3] =   1.1671989e+00 
     f(x) =   8.3729430e-03
 
+
+-multistart_mds_omp_tasks:
+--threads 2:
+    FINAL RESULTS:
+    Elapsed time = 55.110 s
+    Total number of trials = 64
+    Total number of function evaluations = 640292
+    Best result at trial 13 used 1251 iterations, 10005 function calls and returned
+    x[  0] =   1.0194756e+00 
+    x[  1] =   1.0393283e+00 
+    x[  2] =   1.0802491e+00 
+    x[  3] =   1.1671989e+00 
+    f(x) =   8.3729430e-03
+
+--threads 4:
+    FINAL RESULTS:
+    Elapsed time = 27.512 s
+    Total number of trials = 64
+    Total number of function evaluations = 640292
+    Best result at trial 13 used 1251 iterations, 10005 function calls and returned
+    x[  0] =   1.0194756e+00 
+    x[  1] =   1.0393283e+00 
+    x[  2] =   1.0802491e+00 
+    x[  3] =   1.1671989e+00 
+    f(x) =   8.3729430e-03
+
+--threads 8:
+    FINAL RESULTS:
+    Elapsed time = 13.600 s
+    Total number of trials = 64
+    Total number of function evaluations = 640292
+    Best result at trial 13 used 1251 iterations, 10005 function calls and returned
+    x[  0] =   1.0194756e+00 
+    x[  1] =   1.0393283e+00 
+    x[  2] =   1.0802491e+00 
+    x[  3] =   1.1671989e+00 
+    f(x) =   8.3729430e-03
+
+--threads 16:
+    FINAL RESULTS:
+    Elapsed time = 6.753 s
+    Total number of trials = 64
+    Total number of function evaluations = 640292
+    Best result at trial 13 used 1251 iterations, 10005 function calls and returned
+    x[  0] =   1.0194756e+00 
+    x[  1] =   1.0393283e+00 
+    x[  2] =   1.0802491e+00 
+    x[  3] =   1.1671989e+00 
+    f(x) =   8.3729430e-03
+
+
+-multistart_mds_mpi:
+--procs 2:
+    FINAL RESULTS:
+    Elapsed time = 54.760 s
+    Total number of trials = 64
+    Total number of function evaluations = 640292
+    Best result at trial 13 used 1251 iterations, 10005 function calls and returned
+    x[  0] =   1.0194756e+00 
+    x[  1] =   1.0393283e+00 
+    x[  2] =   1.0802491e+00 
+    x[  3] =   1.1671989e+00 
+    f(x) =   8.3729430e-03
+
+--procs 4:
+    FINAL RESULTS:
+    Elapsed time = 27.496 s
+    Total number of trials = 64
+    Total number of function evaluations = 640292
+    Best result at trial 13 used 1251 iterations, 10005 function calls and returned
+    x[  0] =   1.0194756e+00 
+    x[  1] =   1.0393283e+00 
+    x[  2] =   1.0802491e+00 
+    x[  3] =   1.1671989e+00 
+    f(x) =   8.3729430e-03
+
+--procs 8:
+    FINAL RESULTS:
+    Elapsed time = 13.717 s
+    Total number of trials = 64
+    Total number of function evaluations = 640292
+    Best result at trial 13 used 1251 iterations, 10005 function calls and returned
+    x[  0] =   1.0194756e+00 
+    x[  1] =   1.0393283e+00 
+    x[  2] =   1.0802491e+00 
+    x[  3] =   1.1671989e+00 
+    f(x) =   8.3729430e-03
+
+--procs 16:
+    FINAL RESULTS:
+    Elapsed time = 6.797 s
+    Total number of trials = 64
+    Total number of function evaluations = 640292
+    Best result at trial 13 used 1251 iterations, 10005 function calls and returned
+    x[  0] =   1.0194756e+00 
+    x[  1] =   1.0393283e+00 
+    x[  2] =   1.0802491e+00 
+    x[  3] =   1.1671989e+00 
+    f(x) =   8.3729430e-03
