@@ -25,6 +25,27 @@
     C=5.673e-03, acc=0.8633
     Total time execution: 15.331109046936035
 
+    ---n_trials 4:
+        Best result:
+        C=3.531e-03, acc=0.8631
+        Total time execution: 2.485717296600342
+    ---n_trials 8:
+        Best result:
+        C=8.279e-03, acc=0.8632
+        Total time execution: 4.282967805862427
+    ---n_trials 16:
+        Best result:
+        C=8.279e-03, acc=0.8632
+        Total time execution: 7.193843126296997
+    ---n_trials 32:
+        Best result:
+        C=5.523e-03, acc=0.8633
+        Total time execution: 15.932642936706543
+    ---n_trials 64:
+        Best result:
+        C=7.690e-03, acc=0.8635
+        Total time execution: 22.744714736938477
+
 
 -rs_mpi4py_futures: (mpiexec -n 8 python3 -m mpi4py.futures rs_mpi4py_futures.py)
 --procs 2:
@@ -46,6 +67,26 @@
     Best result:
     C=5.523e-03, acc=0.8633
     Total time execution: 23.1712s
+    ---n_trials 4:
+        Best result:
+        C=3.531e-03, acc=0.8631
+        Total time execution: 10.0898s
+    ---n_trials 8:
+        Best result:
+        C=8.279e-03, acc=0.8632
+        Total time execution: 12.3295s
+    ---n_trials 16:
+        Best result:
+        C=8.279e-03, acc=0.8632
+        Total time execution: 15.5925s
+    ---n_trials 32:
+        Best result:
+        C=5.523e-03, acc=0.8633
+        Total time execution: 25.2732s
+    ---n_trials 64:
+        Best result:
+        C=7.690e-03, acc=0.8635
+        Total time execution: 34.0542s
 
 
 Why MPI is slower than ThreadPoolExecutor at equivalent parallelism:
@@ -81,7 +122,27 @@ The ThreadPoolExecutor version scales better here because scikit-learn releases 
     Best result:
     C=5.523e-03, acc=0.8633
     Total time execution: 17.2098s
-
+    ---n_trials 4:
+        Best result:
+        C=3.531e-03, acc=0.8631
+        Total time execution: 3.6291s
+    ---n_trials 8:
+        Best result:
+        C=8.279e-03, acc=0.8632
+        Total time execution: 6.5207s
+    ---n_trials 16:
+        Best result:
+        C=8.291e-03, acc=0.8633
+        Total time execution: 8.0043s
+    ---n_trials 32:
+        Best result:
+        C=5.523e-03, acc=0.8633
+        Total time execution: 17.7987s
+    ---n_trials 64:
+        Best result:
+        C=7.690e-03, acc=0.8634
+        Total time execution: 30.2836s
+        
 
 This version uses MPI.COMM_WORLD directly (not mpi4py.futures), so no -m mpi4py.futures is needed.
 All N processes are workers — there's no master/worker overhead, so -n 8 gives you 8 workers (vs 7 with the futures version).
