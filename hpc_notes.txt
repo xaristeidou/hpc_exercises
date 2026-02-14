@@ -1,0 +1,162 @@
+-OpenMP:
+
+-> to include use:
+#include <omp.h>
+
+-> set the number of threads
+omp_set_num_threads(num)
+
+-> get the number of threads
+omp_get_num_threads() : outside parallel region is 1, inside a parallel region is equal to actual number of threads
+
+-> get the number id for that running thread
+omp_get_thread_num()
+
+-> get the maximum number of threads that can be used
+omp_get_max_threads()
+
+-> get number of processors/cores
+omp_get_num_procs()
+
+#pragma omp parallel for reduction(+:sum) private(x)
+- omp: tells compiler to use OpenMP
+- parallel: creates a team of threads
+- for: splits the iterations of for loop to the threads
+- reduction(+:sum): each thread gets private copy of sum, updates locally the sum, at the end combines all thread-local sum values using +
+- private(x): each thread has a private copy of x, changes are not visible to other threads
+
+-> locks execution for that block (avoids race conditions)
+#pragma omp critical
+
+
+-> Critical vs reduction
+Prefer reduction using local variables because critical will pause some threads execution
+
+-> protect single memory operation
+#pragma omp atomic
+
+-> all threads wait up to a barrier (checkpoint)
+#pragma omp barrier
+
+-> schedule work to each thread dynamically not upfront
+#pragma omp parallel for schedule(dynamic, 1)
+- schedule(static): the default and assigns all work to thread from the beginning. Not good when we dont know the exact workload of each work that is assigned.
+- schedule(dynamic, 1): this tell the threads scheduler that will assign new work to the thread when it finishes 1 iteration. 
+
+-> Compile using:
+gcc -fopenmp -o hello hello.c
+
+-> set number of threads as environment variable
+export OMP_NUM_THREADS=4
+
+-> run in parallel when the if condition is true
+#pragma omp parallel if(value>10)
+
+-> set number of threads at each parallel section
+#pragma omp parallel num_threads(n)
+
+-> specify private or public variables for each thread
+#pragma omp parallel private(i) shared(n)
+
+-> specify private variable for each thread with initialized value
+#pragma omp parallel firstprivate(i)  -> the variable i uses the value that had before the threads
+
+#pragma omp parallel private(i)  -> the variable i is new and uninitialized
+
+-> specifiy private variable for each thread across multiple parallel sections
+#pragma omp threadprivate(x)
+
+-> set threads to execute each specified section only
+#pragma omp parallel sections
+{
+#pragma omp section -> execution by first thread
+x_calculation();
+#pragma omp section -> execution by second thread
+y_calculation();
+#pragma omp section -> execution by third thread
+z_calculation();
+} 
+
+
+-> define a part in a parallel code to be executed by one thread only
+#pragma omp parallel
+{
+do_many_things();
+#pragma omp single
+{
+exchange_boundaries();
+}
+do_many_other_things();
+}
+
+
+============================================================================
+
+
+MPI:
+
+-> to execute MPI programs run using:
+mpiexec -n 4 ./hello  (mpiexec -n number_of_processes executable [options])
+
+-> setup/initialize of MPI (usually at very start)
+MPI_Init()
+
+-> cleanup/end MPI (usually at the end)
+MPI_Finalize()
+
+-> stop processes that may have failed
+MPI_Abort()
+
+-> get if MPI is initialized
+MPI_Initialized()
+
+-> get if MPI is finalized
+MPI_Finalized()
+
+-> set the rank for each program and the size of all
+int rank;
+int size;
+MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+MPI_Comm_size(MPI_COMM_WORLD,&size);
+
+-> send a copy of data from a buffer in the sender's memory to a destination process
+MPI_Send()
+
+-> wait until a matching message arrives from the sender and then stores it in a local buffer
+MPI_Recv()
+
+-> apply reduction gathering all data from processes to main process
+MPI_Reduce()
+
+-> common reduce operations
+MPI_SUM	                Adds all values together.
+MPI_PROD	        Multiplies all values together.
+MPI_MAX / MPI_MIN	Finds the global maximum or minimum.
+MPI_LAND / MPI_LOR	Logical AND / Logical OR.
+MPI_MAXLOC / MPI_MINLOC	Finds the max/min value and the rank that owns it.
+
+-> if all processes need to know the final results we use:
+MPI_Allreduce()
+
+-> scatter operation sends a different piece of data to each of the ranks
+MPI_Scatter()
+
+-> gather operation collects data from the other ranks into a big buffer
+MPI_Gather()
+
+-> optimized version of an MPI_Reduce followed by an MPI_Scatter
+MPI_Reduce_scatter()
+
+-> non-blocking send and receive
+MPI_Issend() Immediate Synchronous Send
+MPI_Ibsend() Immediate Buffered Send
+MPI_Isend()  Immediate Standard Send
+MPI_Irecv()  Immediate Receive
+
+MPI_Request() is used for completion check after asynch calls
+
+MPI_Wait()      waits for the communication to finish and fills in the status
+MPI_Waitall()   waits for all given communications to finish and fills in the statuses
+MPI_Waitany()   waits for one of the given communications to finish
+MPI_Waitsome()  waits for at least one of the given communications to finish
+MPI_Cancel()
