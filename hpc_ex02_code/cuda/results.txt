@@ -1,0 +1,14 @@
+Complex matrix multiplication (1024 x 1024)
+Max absolute error E: 2.273737e-13
+Max absolute error F: 2.273737e-13
+Error in calculations is small.
+
+FLOP count: 8.592e+09
+
+Device (GPU) time: 113.371 ms
+Device throughput:  75.787 GFLOP/s
+
+Host   (CPU) time: 9318.984 ms
+Host   throughput:  0.922 GFLOP/s
+
+Speedup: 82.20x
