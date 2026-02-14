@@ -1,0 +1,128 @@
+=================================================================
+  WENO5 Benchmark — 78 FLOPs per element, 24 bytes per element
+=================================================================
+
+*************** PEAK-LIKE BENCHMARK (RUN 0) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.000787 s  |  1978.381 GFLOP/s  |   608.733 GB/s
+  OMP SIMD              time:   0.172954 s  |     9.003 GFLOP/s  |     2.770 GB/s
+  SSE intrinsics        time:   0.040290 s  |    38.645 GFLOP/s  |    11.891 GB/s
+  AVX intrinsics        time:   0.020844 s  |    74.699 GFLOP/s  |    22.984 GB/s
+
+*************** PEAK-LIKE BENCHMARK (RUN 1) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.000866 s  |  1798.082 GFLOP/s  |   553.256 GB/s
+  OMP SIMD              time:   0.173603 s  |     8.969 GFLOP/s  |     2.760 GB/s
+  SSE intrinsics        time:   0.039726 s  |    39.194 GFLOP/s  |    12.060 GB/s
+  AVX intrinsics        time:   0.020490 s  |    75.990 GFLOP/s  |    23.381 GB/s
+
+*************** PEAK-LIKE BENCHMARK (RUN 2) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.000806 s  |  1931.569 GFLOP/s  |   594.329 GB/s
+  OMP SIMD              time:   0.172565 s  |     9.023 GFLOP/s  |     2.776 GB/s
+  SSE intrinsics        time:   0.040249 s  |    38.685 GFLOP/s  |    11.903 GB/s
+  AVX intrinsics        time:   0.020550 s  |    75.768 GFLOP/s  |    23.313 GB/s
+
+*************** PEAK-LIKE BENCHMARK (RUN 3) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.000808 s  |  1927.010 GFLOP/s  |   592.926 GB/s
+  OMP SIMD              time:   0.171963 s  |     9.054 GFLOP/s  |     2.786 GB/s
+  SSE intrinsics        time:   0.040107 s  |    38.822 GFLOP/s  |    11.945 GB/s
+  AVX intrinsics        time:   0.021256 s  |    73.251 GFLOP/s  |    22.539 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 0) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   0.169967 s  |    26.398 GFLOP/s  |     8.122 GB/s
+  OMP SIMD              time:   0.519237 s  |     8.641 GFLOP/s  |     2.659 GB/s
+  SSE intrinsics        time:   0.124400 s  |    36.067 GFLOP/s  |    11.097 GB/s
+  AVX intrinsics        time:   0.071282 s  |    62.943 GFLOP/s  |    19.367 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 1) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   0.175928 s  |    25.503 GFLOP/s  |     7.847 GB/s
+  OMP SIMD              time:   0.544306 s  |     8.243 GFLOP/s  |     2.536 GB/s
+  SSE intrinsics        time:   0.127014 s  |    35.325 GFLOP/s  |    10.869 GB/s
+  AVX intrinsics        time:   0.070246 s  |    63.871 GFLOP/s  |    19.653 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 2) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   0.171805 s  |    26.115 GFLOP/s  |     8.035 GB/s
+  OMP SIMD              time:   0.534819 s  |     8.389 GFLOP/s  |     2.581 GB/s
+  SSE intrinsics        time:   0.125453 s  |    35.764 GFLOP/s  |    11.004 GB/s
+  AVX intrinsics        time:   0.078302 s  |    57.300 GFLOP/s  |    17.631 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 3) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   0.171765 s  |    26.121 GFLOP/s  |     8.037 GB/s
+  OMP SIMD              time:   0.532879 s  |     8.420 GFLOP/s  |     2.591 GB/s
+  SSE intrinsics        time:   0.122426 s  |    36.648 GFLOP/s  |    11.276 GB/s
+  AVX intrinsics        time:   0.072360 s  |    62.005 GFLOP/s  |    19.079 GB/s
+
+
+
+
+
+
+
+
+Without 03 optimization
+
+=================================================================
+  WENO5 Benchmark — 78 FLOPs per element, 24 bytes per element
+=================================================================
+
+*************** PEAK-LIKE BENCHMARK (RUN 0) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.666573 s  |     2.336 GFLOP/s  |     0.719 GB/s
+  OMP SIMD              time:   0.649355 s  |     2.398 GFLOP/s  |     0.738 GB/s
+  SSE intrinsics        time:   0.483108 s  |     3.223 GFLOP/s  |     0.992 GB/s
+  AVX intrinsics        time:   0.259570 s  |     5.998 GFLOP/s  |     1.846 GB/s
+
+*************** PEAK-LIKE BENCHMARK (RUN 1) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.674027 s  |     2.310 GFLOP/s  |     0.711 GB/s
+  OMP SIMD              time:   0.661997 s  |     2.352 GFLOP/s  |     0.724 GB/s
+  SSE intrinsics        time:   0.496650 s  |     3.135 GFLOP/s  |     0.965 GB/s
+  AVX intrinsics        time:   0.262110 s  |     5.940 GFLOP/s  |     1.828 GB/s
+
+*************** PEAK-LIKE BENCHMARK (RUN 2) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.665635 s  |     2.339 GFLOP/s  |     0.720 GB/s
+  OMP SIMD              time:   0.689929 s  |     2.257 GFLOP/s  |     0.694 GB/s
+  SSE intrinsics        time:   0.537800 s  |     2.895 GFLOP/s  |     0.891 GB/s
+  AVX intrinsics        time:   0.265802 s  |     5.858 GFLOP/s  |     1.802 GB/s
+
+*************** PEAK-LIKE BENCHMARK (RUN 3) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.730053 s  |     2.133 GFLOP/s  |     0.656 GB/s
+  OMP SIMD              time:   0.694100 s  |     2.243 GFLOP/s  |     0.690 GB/s
+  SSE intrinsics        time:   0.487233 s  |     3.196 GFLOP/s  |     0.983 GB/s
+  AVX intrinsics        time:   0.262377 s  |     5.934 GFLOP/s  |     1.826 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 0) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   1.920203 s  |     2.337 GFLOP/s  |     0.719 GB/s
+  OMP SIMD              time:   1.887142 s  |     2.378 GFLOP/s  |     0.732 GB/s
+  SSE intrinsics        time:   1.398390 s  |     3.208 GFLOP/s  |     0.987 GB/s
+  AVX intrinsics        time:   0.746753 s  |     6.008 GFLOP/s  |     1.849 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 1) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   1.968213 s  |     2.280 GFLOP/s  |     0.701 GB/s
+  OMP SIMD              time:   1.899002 s  |     2.363 GFLOP/s  |     0.727 GB/s
+  SSE intrinsics        time:   1.389085 s  |     3.230 GFLOP/s  |     0.994 GB/s
+  AVX intrinsics        time:   0.747267 s  |     6.004 GFLOP/s  |     1.847 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 2) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   1.923345 s  |     2.333 GFLOP/s  |     0.718 GB/s
+  OMP SIMD              time:   1.896108 s  |     2.366 GFLOP/s  |     0.728 GB/s
+  SSE intrinsics        time:   1.398501 s  |     3.208 GFLOP/s  |     0.987 GB/s
+  AVX intrinsics        time:   0.747741 s  |     6.000 GFLOP/s  |     1.846 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 3) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   1.911512 s  |     2.347 GFLOP/s  |     0.722 GB/s
+  OMP SIMD              time:   1.893588 s  |     2.369 GFLOP/s  |     0.729 GB/s
+  SSE intrinsics        time:   1.389432 s  |     3.229 GFLOP/s  |     0.994 GB/s
+  AVX intrinsics        time:   0.745490 s  |     6.018 GFLOP/s  |     1.852 GB/s
