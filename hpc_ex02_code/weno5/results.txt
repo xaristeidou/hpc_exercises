@@ -1,3 +1,5 @@
+Using O3 optimization
+
 =================================================================
   WENO5 Benchmark — 78 FLOPs per element, 24 bytes per element
 =================================================================
@@ -61,11 +63,73 @@ nentries set to 19173960 (stream)
 
 
 
+Using O2 optimization
+
+=================================================================
+  WENO5 Benchmark — 78 FLOPs per element, 24 bytes per element
+=================================================================
+
+*************** PEAK-LIKE BENCHMARK (RUN 0) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.170524 s  |     9.131 GFLOP/s  |     2.809 GB/s
+  OMP SIMD              time:   0.170832 s  |     9.114 GFLOP/s  |     2.804 GB/s
+  SSE intrinsics        time:   0.040568 s  |    38.381 GFLOP/s  |    11.809 GB/s
+  AVX intrinsics        time:   0.021106 s  |    73.772 GFLOP/s  |    22.699 GB/s
+
+*************** PEAK-LIKE BENCHMARK (RUN 1) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.184609 s  |     8.434 GFLOP/s  |     2.595 GB/s
+  OMP SIMD              time:   0.181232 s  |     8.591 GFLOP/s  |     2.643 GB/s
+  SSE intrinsics        time:   0.041026 s  |    37.952 GFLOP/s  |    11.678 GB/s
+  AVX intrinsics        time:   0.021398 s  |    72.765 GFLOP/s  |    22.389 GB/s
+
+*************** PEAK-LIKE BENCHMARK (RUN 2) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.181908 s  |     8.559 GFLOP/s  |     2.634 GB/s
+  OMP SIMD              time:   0.182871 s  |     8.514 GFLOP/s  |     2.620 GB/s
+  SSE intrinsics        time:   0.054819 s  |    28.403 GFLOP/s  |     8.739 GB/s
+  AVX intrinsics        time:   0.021187 s  |    73.489 GFLOP/s  |    22.612 GB/s
+
+*************** PEAK-LIKE BENCHMARK (RUN 3) **************************
+nentries set to 92416 (cache)
+  Scalar                time:   0.172369 s  |     9.033 GFLOP/s  |     2.779 GB/s
+  OMP SIMD              time:   0.170398 s  |     9.138 GFLOP/s  |     2.812 GB/s
+  SSE intrinsics        time:   0.040745 s  |    38.214 GFLOP/s  |    11.758 GB/s
+  AVX intrinsics        time:   0.021371 s  |    72.856 GFLOP/s  |    22.417 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 0) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   0.546075 s  |     8.216 GFLOP/s  |     2.528 GB/s
+  OMP SIMD              time:   0.528771 s  |     8.485 GFLOP/s  |     2.611 GB/s
+  SSE intrinsics        time:   0.128772 s  |    34.842 GFLOP/s  |    10.721 GB/s
+  AVX intrinsics        time:   0.071356 s  |    62.878 GFLOP/s  |    19.347 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 1) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   0.489353 s  |     9.169 GFLOP/s  |     2.821 GB/s
+  OMP SIMD              time:   0.489046 s  |     9.174 GFLOP/s  |     2.823 GB/s
+  SSE intrinsics        time:   0.116929 s  |    38.371 GFLOP/s  |    11.807 GB/s
+  AVX intrinsics        time:   0.064257 s  |    69.825 GFLOP/s  |    21.484 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 2) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   0.486527 s  |     9.222 GFLOP/s  |     2.838 GB/s
+  OMP SIMD              time:   0.495697 s  |     9.051 GFLOP/s  |     2.785 GB/s
+  SSE intrinsics        time:   0.115865 s  |    38.724 GFLOP/s  |    11.915 GB/s
+  AVX intrinsics        time:   0.062380 s  |    71.925 GFLOP/s  |    22.131 GB/s
+
+*************** STREAM-LIKE BENCHMARK (RUN 3) **************************
+nentries set to 19173960 (stream)
+  Scalar                time:   0.497890 s  |     9.011 GFLOP/s  |     2.773 GB/s
+  OMP SIMD              time:   0.497799 s  |     9.013 GFLOP/s  |     2.773 GB/s
+  SSE intrinsics        time:   0.121396 s  |    36.959 GFLOP/s  |    11.372 GB/s
+  AVX intrinsics        time:   0.063082 s  |    71.125 GFLOP/s  |    21.885 GB/s
 
 
 
 
-Without 03 optimization
+
+Without optimization
 
 =================================================================
   WENO5 Benchmark — 78 FLOPs per element, 24 bytes per element
