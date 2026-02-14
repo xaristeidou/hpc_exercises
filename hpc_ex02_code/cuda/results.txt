@@ -1,3 +1,72 @@
+-N 64:
+Complex matrix multiplication (64 x 64)
+Max absolute error E: 1.065814e-14
+Max absolute error F: 1.421085e-14
+Error in calculations is small.
+
+FLOP count: 2.105e+06
+
+Device (GPU) time: 1.397 ms
+Device throughput:  1.507 GFLOP/s
+
+Host   (CPU) time: 0.656 ms
+Host   throughput:  3.209 GFLOP/s
+
+Speedup: 0.47x
+
+
+-N 128:
+Complex matrix multiplication (128 x 128)
+Max absolute error E: 2.842171e-14
+Max absolute error F: 2.842171e-14
+Error in calculations is small.
+
+FLOP count: 1.681e+07
+
+Device (GPU) time: 0.357 ms
+Device throughput:  47.126 GFLOP/s
+
+Host   (CPU) time: 4.682 ms
+Host   throughput:  3.591 GFLOP/s
+
+Speedup: 13.12x
+
+
+-N 256:
+Complex matrix multiplication (256 x 256)
+Max absolute error E: 5.684342e-14
+Max absolute error F: 5.684342e-14
+Error in calculations is small.
+
+FLOP count: 1.343e+08
+
+Device (GPU) time: 1.897 ms
+Device throughput:  70.838 GFLOP/s
+
+Host   (CPU) time: 50.920 ms
+Host   throughput:  2.638 GFLOP/s
+
+Speedup: 26.85x
+
+
+-N 512:
+Complex matrix multiplication (512 x 512)
+Max absolute error E: 9.947598e-14
+Max absolute error F: 1.136868e-13
+Error in calculations is small.
+
+FLOP count: 1.074e+09
+
+Device (GPU) time: 14.402 ms
+Device throughput:  74.592 GFLOP/s
+
+Host   (CPU) time: 834.897 ms
+Host   throughput:  1.287 GFLOP/s
+
+Speedup: 57.97x
+
+
+-N 1024:
 Complex matrix multiplication (1024 x 1024)
 Max absolute error E: 2.273737e-13
 Max absolute error F: 2.273737e-13
@@ -5,10 +74,27 @@ Error in calculations is small.
 
 FLOP count: 8.592e+09
 
-Device (GPU) time: 113.371 ms
-Device throughput:  75.787 GFLOP/s
+Device (GPU) time: 113.713 ms
+Device throughput:  75.559 GFLOP/s
 
-Host   (CPU) time: 9318.984 ms
-Host   throughput:  0.922 GFLOP/s
+Host   (CPU) time: 8971.254 ms
+Host   throughput:  0.958 GFLOP/s
 
-Speedup: 82.20x
+Speedup: 78.89x
+
+
+-N 2048:
+Complex matrix multiplication (2048 x 2048)
+Max absolute error E: 4.547474e-13
+Max absolute error F: 4.547474e-13
+Error in calculations is small.
+
+FLOP count: 6.873e+10
+
+Device (GPU) time: 762.997 ms
+Device throughput:  90.076 GFLOP/s
+
+Host   (CPU) time: 96346.320 ms
+Host   throughput:  0.713 GFLOP/s
+
+Speedup: 126.27x
