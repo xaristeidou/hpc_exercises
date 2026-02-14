@@ -6,7 +6,7 @@
 #include <cublas_v2.h>
 
 #define N 1024
-#define BLOCK_SIZE 128
+#define BLOCK_SIZE 16
 
 //Combination kernels
 

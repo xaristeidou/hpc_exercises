@@ -5,7 +5,7 @@
 #include <cuda_runtime.h>
 
 #define N 1024
-#define BLOCK_SIZE 128
+#define BLOCK_SIZE 16
 
 // CUDA kernel: computes E = A*C - B*D  and  F = A*D + B*C
 // All matrices are N x N, stored in row-major order.
@@ -151,11 +151,11 @@ int main(void) {
 
     if (max_err_E < 1e-6 && max_err_F < 1e-6)
     {
-        printf("PASSED\n");
+        printf("Error in calculations is small.\n");
     }
     else
     {
-        printf("FAILED\n");
+        printf("Error in calculations is big.\n");
     }
 
     /* FLOP count:
